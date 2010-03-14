@@ -271,7 +271,7 @@ imonlcd_init(Driver *drvthis)
 
 	p->width = 0;		/* Display width, in characters */
 	p->height = 0;		/* Display height, in characters */
-	p->font= (imonlcd_font*) &imonlcd_font_8x6;
+	p->font= (imonlcd_font*) &imonlcd_font_4x4;
 
 	p->last_cd_state = 0;
 	p->last_output_state = 0x0;	/* no icons turned on at startup */
