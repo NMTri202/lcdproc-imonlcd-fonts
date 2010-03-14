@@ -19,10 +19,7 @@
 
 #include "imonlcd_fonts.h"
 
-#define IMON_FONT_NORMAL_CHARWIDTH 6
-#define IMON_FONT_NORMAL_CHARHEIGHT 8
-
-static const char normal_chars[256][IMON_FONT_NORMAL_CHARWIDTH]= {
+static const char normal_chars[256][6]= {
         {0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, //   0 \u0020 space
         {0x00, 0x7c, 0xa2, 0x8a, 0xa2, 0x7c }, //   1 \u263a light smiley face
         {0x00, 0x7c, 0xd6, 0xf6, 0xd6, 0x7c }, //   2 \u263b dark smiley face
@@ -310,8 +307,7 @@ static short* get_big_char_pixels(unsigned const char idx) {
 }
 
 const imonlcd_font imonlcd_font_8x6= {
-    IMON_FONT_NORMAL_CHARWIDTH,
-    IMON_FONT_NORMAL_CHARHEIGHT,
+    6, 8,
     get_char_pixels,
     get_big_char_pixels
 };

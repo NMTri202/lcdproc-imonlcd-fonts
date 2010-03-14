@@ -49,8 +49,8 @@ typedef struct _imon_font {
 } imonlcd_font;
 
 extern imonlcd_font imonlcd_font_8x6;
-extern imonlcd_font font_5x4;
-extern imonlcd_font font_4x4;
+//extern imonlcd_font imonlcd_font_5x4;
+extern imonlcd_font imonlcd_font_4x4;
 
 #endif /* IMONLCD_FONTS_H_ */
 
