@@ -9,7 +9,7 @@
 
 #include "imonlcd_fonts.h"
 
-static const char normal_chars[256][4]= {
+static const char _4x4_normal_chars[256][4]= {
     { 0x0, 0x0, 0x0, 0x0 }, //   0 \u0020 space
     { 0x8, 0x2, 0x8, 0x0 }, //   1 \u263a light smiley face
     { 0x6, 0xc, 0x6, 0x0 }, //   2 \u263b dark smiley face
@@ -268,16 +268,16 @@ static const char normal_chars[256][4]= {
     { 0xc, 0x6, 0xc, 0x0 }  // 255 \u00ff ÿ y diaeresis
 };
 
-static char* get_char_pixels(unsigned const char idx) {
-    return normal_chars[idx];
+static char* _4x4_get_char_pixels(unsigned const char idx) {
+    return _4x4_normal_chars[idx];
 }
 
-static short* get_big_char_pixels(unsigned const char idx) {
+static short* _4x4_get_big_char_pixels(unsigned const char idx) {
     return 0;
 }
 
 const imonlcd_font imonlcd_font_4x4= {
     4, 4,
-    get_char_pixels,
-    get_big_char_pixels
+    _4x4_get_char_pixels,
+    _4x4_get_big_char_pixels
 };

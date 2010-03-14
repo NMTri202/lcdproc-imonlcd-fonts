@@ -19,7 +19,7 @@
 
 #include "imonlcd_fonts.h"
 
-static const char normal_chars[256][6]= {
+static const char _8x6_normal_chars[256][6]= {
         {0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, //   0 \u0020 space
         {0x00, 0x7c, 0xa2, 0x8a, 0xa2, 0x7c }, //   1 \u263a light smiley face
         {0x00, 0x7c, 0xd6, 0xf6, 0xd6, 0x7c }, //   2 \u263b dark smiley face
@@ -278,7 +278,7 @@ static const char normal_chars[256][6]= {
         {0x00, 0x39, 0x85, 0x06, 0xbc, 0x00 }  // 255 \u00ff ÿ y diaeresis
 };
 
-static const short bigger_chars[12][IMON_FONT_NORMAL_CHARWIDTH << 1]= {
+static const short _8x6_bigger_chars[12][IMON_FONT_NORMAL_CHARWIDTH << 1]= {
    /*0*/{0x0000, 0x07E0, 0x1FF8, 0x3FFC, 0x7FFE, 0x4002, 0x4002, 0x4002, 0x3FFC, 0x3FFC, 0x1FF8, 0x07E0},
    /*1*/{0x0000, 0x0000, 0x0000, 0x4002, 0x7FFE, 0x7FFE, 0x7FFE, 0x7FFE, 0x0002, 0x0000, 0x0000, 0x0000},
    /*2*/{0x0000, 0x1806, 0x3C2C, 0x7C7C, 0x5C5C, 0x40DE, 0x7F9E, 0x7F8E, 0x3F0E, 0x1E0C, 0x0018, 0x0000},
@@ -298,16 +298,16 @@ static const short bigger_chars[12][IMON_FONT_NORMAL_CHARWIDTH << 1]= {
   /*\0*/{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
 };
 
-static char* get_char_pixels(unsigned const char idx) {
-    return normal_chars[idx];
+static char* _8x6_get_char_pixels(unsigned const char idx) {
+    return _8x6_normal_chars[idx];
 }
 
-static short* get_big_char_pixels(unsigned const char idx) {
-    return bigger_chars[idx];
+static short* _8x6_get_big_char_pixels(unsigned const char idx) {
+    return _8x6_bigger_chars[idx];
 }
 
 const imonlcd_font imonlcd_font_8x6= {
     6, 8,
-    get_char_pixels,
-    get_big_char_pixels
+    _8x6_get_char_pixels,
+    _8x6_get_big_char_pixels
 };
