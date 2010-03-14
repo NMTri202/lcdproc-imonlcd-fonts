@@ -1158,6 +1158,14 @@ static void
 send_packet(PrivateData *p)
 {
 	int err;
+        /* lines inserted to force delay (and fix the writing problem*/
+        struct timespec req;
+
+        req.tv_sec=0;
+        req.tv_nsec=2000000L;
+        nanosleep(&req, NULL);
+        /* end of lines to fix the problem */
+
 	err = write(p->imon_fd, p->tx_buf, sizeof(p->tx_buf));
 
 	if (err <= 0)
