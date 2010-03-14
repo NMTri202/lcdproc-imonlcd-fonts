@@ -35,10 +35,10 @@
 #include "lcd_lib.h"
 #include "report.h"
 
-/* Defines a 6x8 font based on ISO 8859-15 */
-#define LCD_DEFAULT_CELL_WIDTH	6
-#define LCD_DEFAULT_CELL_HEIGHT   8
-#include "imonlcd_font.h"
+///* Defines a 6x8 font based on ISO 8859-15 */
+//#define LCD_DEFAULT_CELL_WIDTH	6
+//#define LCD_DEFAULT_CELL_HEIGHT   8
+#include "imonlcd_fonts.h"
 
 #include "imonlcd.h"
 
@@ -82,7 +82,7 @@ typedef struct imonlcd_private_data {
 	int bytesperline;
 
 	int width, height;
-	int cellwidth, cellheight;
+	imonlcd_font *font;
 
 	int on_exit;
 	int contrast;		/* 0 = lowest contrast, 1000 = highest */
@@ -232,7 +232,7 @@ typedef struct imonlcd_private_data {
 
 /* prototypes for driver internal functions */
 static void imonlcd_display_init(Driver *drvthis);
-static void draw_bigchar(imon_bigfont *font, int ch, int x, int y, PrivateData *p);
+static void draw_bigchar(imonlcd_font *font, int ch, int x, int y, PrivateData *p);
 static void setLineLength(int topLine, int botLine, int topProgress, int botProgress, PrivateData *p);
 static void setBuiltinProgressBars(int topLine, int botLine, int topProgress, int botProgress, PrivateData *p);
 static int lengthToPixels(int length);
@@ -271,8 +271,7 @@ imonlcd_init(Driver *drvthis)
 
 	p->width = 0;		/* Display width, in characters */
 	p->height = 0;		/* Display height, in characters */
-	p->cellwidth = LCD_DEFAULT_CELL_WIDTH;	 /* width of a character, in pixels */
-	p->cellheight = LCD_DEFAULT_CELL_HEIGHT; /* height of a character, in pixels */
+	p->font= (imonlcd_font*) &imonlcd_font_8x6;
 
 	p->last_cd_state = 0;
 	p->last_output_state = 0x0;	/* no icons turned on at startup */
@@ -326,16 +325,16 @@ imonlcd_init(Driver *drvthis)
 	buf[sizeof(buf) - 1] = '\0';
 	if ((sscanf(buf, "%dx%d", &graph_width, &graph_height) != 2)
 	    || (graph_width <= 0) || (graph_height <= 0)
-	    || (graph_height < LCD_DEFAULT_CELL_HEIGHT)
-	    || ((graph_width / p->cellwidth) > LCD_MAX_WIDTH)
-	    || ((graph_height / p->cellheight) > LCD_MAX_HEIGHT)) {
+	    || (graph_height < p->font->charHeight)
+	    || ((graph_width / p->font->charWidth) > LCD_MAX_WIDTH)
+	    || ((graph_height / p->font->charHeight) > LCD_MAX_HEIGHT)) {
 		report(RPT_WARNING, "%s: cannot read Size: %s; using default %s",
 		       drvthis->name, buf, DEFAULT_SIZE);
 		sscanf(DEFAULT_SIZE, "%dx%d", &graph_width, &graph_height);
 	}
 	/* Convert dimension in pixels to characters. */
-	p->width = (graph_width / p->cellwidth);
-	p->height = (graph_height / p->cellheight);
+	p->width = (graph_width / p->font->charWidth);
+	p->height = (graph_height / p->font->charHeight);
 
 	/* Store this to make working with the frame buffer memory easier. */
 	p->bytesperline = graph_width;
@@ -593,23 +592,41 @@ MODULE_EXPORT void
 imonlcd_chr(Driver *drvthis, int x, int y, char ch)
 {
 	PrivateData *p = drvthis->private_data;
-	imon_font *defn;
 	int col;
+	int hpixStart, hpixEnd, frow, fpix;
+	const int h= p->font->charHeight;
+	char* pixels= p->font->getCharPixels(ch);
+	const char mask= ~(-1 << h);
 
-	if ((x < 1) || (y < 1) || (x > p->width) || (y > p->height))
+	if ((x < 1) || (y < 1) || (x > p->width) || (y > p->height)) {
 		return;
+	}
 
 	x--; y--;
-	/* Convert from characters to pixels. */
-	x *= p->cellwidth;
-	y *= p->bytesperline;
-
-	defn = &font[(unsigned char) ch];
+	hpixStart= y * h;
+	hpixEnd= hpixStart + h;
 
 	/* Copy character from font into frame buffer */
-	for (col = 0; col < p->cellwidth; col++) {
-		p->framebuf[x + y] = defn->pixels[col];
-		x++;
+	for(col= 0; col < p->font->charWidth; col++) {
+		for(frow= (hpixStart / 8), fpix= frow * 8; fpix < hpixEnd; frow++, fpix+=8) {
+			int shift= 8 - h + fpix - hpixStart;
+			char bits= pixels[col] & mask;
+			int framemask= 0x00;
+
+			// move bits to the correct position for the frame buffer
+			bits= shift < 0 ? (bits >> -shift) : (bits << shift);
+
+			// create mask to backup bits in the frame buffer
+			if(fpix < hpixStart) {
+				framemask|= (-1 << (8 + fpix - hpixStart)); // most significant bits
+			}
+
+			if(fpix > hpixEnd) {
+				framemask|= ~(-1 << (fpix - hpixEnd)); // least significant bits
+			}
+
+			p->framebuf[x + frow + p->bytesperline]= (p->framebuf[x + frow + p->bytesperline] & framemask) | bits;
+		}
 	}
 }
 
@@ -632,7 +649,7 @@ imonlcd_vbar(Driver *drvthis, int x, int y, int len, int promille, int options)
 	 * rest
 	 */
 	lib_vbar_static(drvthis, x, y, len, promille, options,
-			p->cellheight, IMONLCD_FONT_START_VBAR_NARROW-1);
+			p->font->charHeight, IMONLCD_FONT_START_VBAR_NARROW-1);
 }
 
 
@@ -657,16 +674,16 @@ imonlcd_hbar(Driver *drvthis, int x, int y, int len, int promille, int options)
 	 * look right if lib_hbar_static() were used.)
 	 */
 
-	int total_pixels = ((long)2 * len * p->cellwidth + 1) * promille / 2000;
+	int total_pixels = ((long)2 * len * p->font->charWidth + 1) * promille / 2000;
 	int pos;
 
 	for (pos = 0; pos < len; pos++) {
 
-		int pixels = total_pixels - p->cellwidth * pos;
+		int pixels = total_pixels - p->font->charWidth * pos;
 
-		if (pixels >= p->cellwidth) {
+		if (pixels >= p->font->charWidth) {
 			/* write a "full" block to the screen... */
-			imonlcd_chr(drvthis, x + pos, y, p->cellwidth + IMONLCD_FONT_START_HBAR_NARROW - 1);
+			imonlcd_chr(drvthis, x + pos, y, p->font->charWidth + IMONLCD_FONT_START_HBAR_NARROW - 1);
 		} else if (pixels > 0) {
 			/* write a partial block... */
 			imonlcd_chr(drvthis, x + pos, y, pixels + IMONLCD_FONT_START_HBAR_NARROW - 1);
@@ -787,11 +804,11 @@ imonlcd_num(Driver *drvthis, int x, int num)
 	 * pretty cool, too.
 	 */
 	if (num < 10)
-		x = 12 + (int)(((x - 1) * p->cellwidth) * 0.75);
+		x = 12 + (int)(((x - 1) * p->font->charWidth) * 0.75);
 	else
-		x = 12 + (int)(((x - 1) * p->cellwidth) * 0.72);
+		x = 12 + (int)(((x - 1) * p->font->charWidth) * 0.72);
 
-	draw_bigchar(bigfont, (num >= 10 ? ':' : (num + '0')), x, 0, p);
+	draw_bigchar(p->font, (num >= 10 ? ':' : (num + '0')), x, 0, p);
 }
 
 /**
@@ -1091,7 +1108,7 @@ imonlcd_cellwidth(Driver *drvthis)
 {
 	PrivateData *p = drvthis->private_data;
 
-	return p->cellwidth;
+	return p->font->charWidth;
 }
 
 
@@ -1105,7 +1122,7 @@ imonlcd_cellheight(Driver *drvthis)
 {
 	PrivateData *p = drvthis->private_data;
 
-	return p->cellheight;
+	return p->font->charHeight;
 }
 
 
@@ -1225,30 +1242,43 @@ imonlcd_backlight(Driver *drvthis, int on)
  * \param p     pointer to the PrivateData structure
  */
 static void
-draw_bigchar(imon_bigfont *font, int ch, int x, int y, PrivateData *p)
+draw_bigchar(imonlcd_font *font, int ch, int x, int y, PrivateData *p)
 {
-	imon_bigfont *defn = font;
-	int i;
+    short* pixels;
+	int i, idx;
 	int colBorder;
+	int width= font->charWidth * 2;
+	int height= font->charHeight * 2;
 
-	while (defn->ch != ch && defn->ch != '\0') {
-		defn++;
+	idx= ch - '0';
+	if(idx < 0 || idx > 9) { // check if it is not a number
+	    if(ch == ':') {
+	        idx= 10; // colon bitmap
+	    } else {
+	        idx= 11; // simply a space
+	    }
 	}
 
-	/*
-	 * correction for the number flashing with the colon running
-	 * "lcdproc K"
-	 */
-	colBorder = 12;
-	if (ch == ':')
-		colBorder = 6;
+	pixels= font->getBigCharPixels(idx);
 
-	for (i = 0; i < colBorder; i++) {
-		p->framebuf[x + i + (y * colBorder)] = (defn->pixels[i] & 0xFF00) >> 8;
-	}
-	for (i = 0; i < colBorder; i++) {
-		p->framebuf[x + i + (y * colBorder) + p->bytesperline] = (defn->pixels[i] & 0x00FF);
-	}
+// TODO: figure out what this does
+//	/*
+//	 * correction for the number flashing with the colon running
+//	 * "lcdproc K"
+//	 */
+//	colBorder = 12;
+//	if (ch == ':') {
+//		colBorder = 6;
+//	}
+//
+//	for (i = 0; i < colBorder; i++) {
+//		p->framebuf[x + i + (y * colBorder)] = (defn->pixels[i] & 0xFF00) >> 8;
+//	}
+//	for (i = 0; i < colBorder; i++) {
+//		p->framebuf[x + i + (y * colBorder) + p->bytesperline] = (defn->pixels[i] & 0x00FF);
+//	}
+
+
 }
 
 
