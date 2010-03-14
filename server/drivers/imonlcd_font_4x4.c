@@ -276,7 +276,7 @@ static short* _4x4_get_big_char_pixels(unsigned const char idx) {
     return 0;
 }
 
-const imonlcd_font imonlcd_font_4x4= {
+imonlcd_font imonlcd_font_4x4= {
     4, 4,
     _4x4_get_char_pixels,
     _4x4_get_big_char_pixels

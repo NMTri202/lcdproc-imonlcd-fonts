@@ -306,7 +306,7 @@ static short* _8x6_get_big_char_pixels(unsigned const char idx) {
     return _8x6_bigger_chars[idx];
 }
 
-const imonlcd_font imonlcd_font_8x6= {
+imonlcd_font imonlcd_font_8x6= {
     6, 8,
     _8x6_get_char_pixels,
     _8x6_get_big_char_pixels
