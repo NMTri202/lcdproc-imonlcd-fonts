@@ -603,6 +603,7 @@ imonlcd_chr(Driver *drvthis, int x, int y, char ch)
 	}
 
 	x--; y--;
+	x*= p->font->charWidth;
 	hpixStart= y * h;
 	hpixEnd= hpixStart + h;
 
@@ -624,8 +625,8 @@ imonlcd_chr(Driver *drvthis, int x, int y, char ch)
 			if(fpix > hpixEnd) {
 				framemask|= ~(-1 << (fpix - hpixEnd)); // least significant bits
 			}
-
-			p->framebuf[x + frow + p->bytesperline]= (p->framebuf[x + frow + p->bytesperline] & framemask) | bits;
+			int fbidx= x + col + frow * p->bytesperline;
+			p->framebuf[fbidx]= (p->framebuf[fbidx] & framemask) | bits;
 		}
 	}
 }
