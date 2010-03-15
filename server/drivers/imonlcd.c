@@ -35,9 +35,6 @@
 #include "lcd_lib.h"
 #include "report.h"
 
-///* Defines a 6x8 font based on ISO 8859-15 */
-//#define LCD_DEFAULT_CELL_WIDTH	6
-//#define LCD_DEFAULT_CELL_HEIGHT   8
 #include "imonlcd_fonts.h"
 
 #include "imonlcd.h"
@@ -51,6 +48,7 @@
 #define DEFAULT_DISCMODE     0	/**< spin the "slim" disc */
 #define DEFAULT_ON_EXIT      1	/**< show the big clock */
 #define DEFAULT_PROTOCOL     0	/**< protocol for 15c2:ffdc device */
+#define DEFAULT_FONT         2
 
 
 #define ON_EXIT_SHOWMSG      0	/**< Do nothing - just leave the "shutdown"
@@ -271,7 +269,6 @@ imonlcd_init(Driver *drvthis)
 
 	p->width = 0;		/* Display width, in characters */
 	p->height = 0;		/* Display height, in characters */
-	p->font= (imonlcd_font*) &imonlcd_font_8x6;
 
 	p->last_cd_state = 0;
 	p->last_output_state = 0x0;	/* no icons turned on at startup */
@@ -299,6 +296,21 @@ imonlcd_init(Driver *drvthis)
 		tmp = DEFAULT_PROTOCOL;
 	}
 	p->protocol = tmp;
+
+	/* Get font number */
+	tmp= drvthis->config_get_int(drvthis->name, "Font", 0, DEFAULT_FONT);
+	if ((tmp < 0) || (tmp > 1)) {
+		report(RPT_WARNING, "%s: Font number must be between 0 and 2; using default %d",
+		       drvthis->name, DEFAULT_FONT);
+		tmp= DEFAULT_FONT;
+	}
+	if(tmp == 0) {
+		p->font= &imonlcd_font_4x4;
+	} else if(tmp == 1) {
+		p->font= &imonlcd_font_5x4;
+	} else {
+		p->font= &imonlcd_font_8x6;
+	}
 
 	/* Set commands based on protocol version */
 	if (p->protocol == PROTOCOL_FFDC) {

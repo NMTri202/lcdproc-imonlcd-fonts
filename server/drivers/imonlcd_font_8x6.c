@@ -299,11 +299,11 @@ static const short _8x6_bigger_chars[12][12]= {
 };
 
 static char* _8x6_get_char_pixels(unsigned const char idx) {
-    return _8x6_normal_chars[idx];
+    return (char*) _8x6_normal_chars[idx];
 }
 
 static short* _8x6_get_big_char_pixels(unsigned const char idx) {
-    return _8x6_bigger_chars[idx];
+    return (short*) _8x6_bigger_chars[idx];
 }
 
 imonlcd_font imonlcd_font_8x6= {
