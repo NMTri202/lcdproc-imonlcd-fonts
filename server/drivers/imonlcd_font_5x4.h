@@ -6,8 +6,6 @@
  *     Version: $Revision:$
  */
 
-#include "imonlcd_fonts.h"
-
 static const char _5x4_normal_chars[256][4]= {
     { 0x00, 0x00, 0x00, 0x00 }, //   0 \u0020 space
     { 0x08, 0x02, 0x08, 0x00 }, //   1 \u263a light smiley face
@@ -271,12 +269,7 @@ static char* _5x4_get_char_pixels(unsigned const char idx) {
     return (char*) _5x4_normal_chars[idx];
 }
 
-static short* _5x4_get_big_char_pixels(unsigned const char idx) {
-    return 0;
-}
-
-imonlcd_font imonlcd_font_5x4= {
+const imonlcd_font imonlcd_font_5x4= {
     4, 5,
     _5x4_get_char_pixels,
-    _5x4_get_big_char_pixels
 };

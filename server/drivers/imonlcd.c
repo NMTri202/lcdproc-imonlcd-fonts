@@ -304,12 +304,13 @@ imonlcd_init(Driver *drvthis)
 		       drvthis->name, DEFAULT_FONT);
 		tmp= DEFAULT_FONT;
 	}
-	if(tmp == 0) {
-		p->font= &imonlcd_font_4x4;
+
+	if(tmp == 2) {
+		p->font= (imonlcd_font* ) &imonlcd_font_8x6;
 	} else if(tmp == 1) {
-		p->font= &imonlcd_font_5x4;
+		p->font= (imonlcd_font* ) &imonlcd_font_5x4;
 	} else {
-		p->font= &imonlcd_font_8x6;
+		p->font= (imonlcd_font* ) &imonlcd_font_4x4;
 	}
 
 	/* Set commands based on protocol version */
@@ -817,9 +818,9 @@ imonlcd_num(Driver *drvthis, int x, int num)
 	 * pretty cool, too.
 	 */
 	if (num < 10)
-		x = 12 + (int)(((x - 1) * p->font->charWidth) * 0.75);
+		x = IMONLCD_FONT_NUM_WIDTH + (int)(((x - 1) * p->font->charWidth) * 0.75);
 	else
-		x = 12 + (int)(((x - 1) * p->font->charWidth) * 0.72);
+		x = IMONLCD_FONT_NUM_WIDTH + (int)(((x - 1) * p->font->charWidth) * 0.72);
 
 	draw_bigchar(p->font, (num >= 10 ? ':' : (num + '0')), x, 0, p);
 }
@@ -1266,38 +1267,21 @@ static void
 draw_bigchar(imonlcd_font *font, int ch, int x, int y, PrivateData *p)
 {
     short* pixels;
-	int i, idx;
-	int colBorder;
-	int width= font->charWidth * 2;
-	int height= font->charHeight * 2;
-
-	idx= ch - '0';
-	if(idx < 0 || idx > 9) { // check if it is not a number
-	    if(ch == ':') {
-	        idx= 10; // colon bitmap
-	    } else {
-	        idx= 11; // simply a space
-	    }
+	/*
+	 * correction for the number flashing with the colon running
+	 * "lcdproc K"
+	 */
+	colBorder = 12;
+	if (ch == ':') {
+		colBorder = 6;
 	}
 
-	pixels= font->getBigCharPixels(idx);
-
-// TODO: figure out what this does
-//	/*
-//	 * correction for the number flashing with the colon running
-//	 * "lcdproc K"
-//	 */
-//	colBorder = 12;
-//	if (ch == ':') {
-//		colBorder = 6;
-//	}
-//
-//	for (i = 0; i < colBorder; i++) {
-//		p->framebuf[x + i + (y * colBorder)] = (defn->pixels[i] & 0xFF00) >> 8;
-//	}
-//	for (i = 0; i < colBorder; i++) {
-//		p->framebuf[x + i + (y * colBorder) + p->bytesperline] = (defn->pixels[i] & 0x00FF);
-//	}
+	for (i = 0; i < colBorder; i++) {
+		p->framebuf[x + i + (y * colBorder)] = (defn->pixels[i] & 0xFF00) >> 8;
+	}
+	for (i = 0; i < colBorder; i++) {
+		p->framebuf[x + i + (y * colBorder) + p->bytesperline] = (defn->pixels[i] & 0x00FF);
+	}
 
 
 }
