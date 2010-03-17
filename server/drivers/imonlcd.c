@@ -1267,6 +1267,20 @@ static void
 draw_bigchar(imonlcd_font *font, int ch, int x, int y, PrivateData *p)
 {
     short* pixels;
+	int i, idx;
+	int colBorder;
+
+	idx= ch - '0';
+	if(idx < 0 || idx > 9) { // check if it is not a number
+	    if(ch == ':') {
+	        idx= 10; // colon bitmap
+	    } else {
+	        idx= 11; // simply a space
+	    }
+	}
+
+	pixels= (short *) big_numbers[idx];
+
 	/*
 	 * correction for the number flashing with the colon running
 	 * "lcdproc K"
@@ -1277,10 +1291,10 @@ draw_bigchar(imonlcd_font *font, int ch, int x, int y, PrivateData *p)
 	}
 
 	for (i = 0; i < colBorder; i++) {
-		p->framebuf[x + i + (y * colBorder)] = (defn->pixels[i] & 0xFF00) >> 8;
+		p->framebuf[x + i + (y * colBorder)] = (pixels[i] & 0xFF00) >> 8;
 	}
 	for (i = 0; i < colBorder; i++) {
-		p->framebuf[x + i + (y * colBorder) + p->bytesperline] = (defn->pixels[i] & 0x00FF);
+		p->framebuf[x + i + (y * colBorder) + p->bytesperline] = (pixels[i] & 0x00FF);
 	}
 
 
