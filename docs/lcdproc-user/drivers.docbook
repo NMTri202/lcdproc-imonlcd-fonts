@@ -9,7 +9,6 @@ well as the configuration of LCDd.
 
 &bayrad;
 &CFontz;
-&CFontz633;
 &CFontzPacket;
 &curses;
 &CwLnx;
@@ -54,6 +53,7 @@ well as the configuration of LCDd.
 &text;
 &tyan;
 &ula200;
+&vlsys_m428;
 &xosd;
 
 &ppttrouble;

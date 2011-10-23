@@ -16,7 +16,6 @@
 
   <!ENTITY bayrad SYSTEM "drivers/bayrad.docbook">
   <!ENTITY CFontz SYSTEM "drivers/CFontz.docbook">
-  <!ENTITY CFontz633 SYSTEM "drivers/CFontz633.docbook">
   <!ENTITY CFontzPacket SYSTEM "drivers/CFontzPacket.docbook">
   <!ENTITY curses SYSTEM "drivers/curses.docbook">
   <!ENTITY CwLnx SYSTEM "drivers/CwLnx.docbook">
@@ -60,6 +59,7 @@
   <!ENTITY t6963 SYSTEM "drivers/t6963.docbook">
   <!ENTITY text SYSTEM "drivers/text.docbook">
   <!ENTITY tyan SYSTEM "drivers/tyan.docbook">
+  <!ENTITY vlsys_m428 SYSTEM "drivers/vlsys_m428.docbook">
   <!ENTITY ula200 SYSTEM "drivers/ula200.docbook">
   <!ENTITY xosd SYSTEM "drivers/xosd.docbook">
 
