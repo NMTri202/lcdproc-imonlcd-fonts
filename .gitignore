@@ -15,3 +15,10 @@ install-sh
 missing
 mkinstalldirs
 stamp-h1
+*.o
+*.so
+*.a
+.deps
+*.LSB
+*.debian
+*.rpm
